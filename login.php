@@ -58,7 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-pink:hover { background-color: #b02a6b; color: white; }
     </style>
 </head>
-<body>
+<body class="auth-body">
+    <div class="petals" aria-hidden="true">
+        <span style="--x:8%;  --d:11s; --s:0s;  --z:1.1rem">🌸</span>
+        <span style="--x:22%; --d:14s; --s:3s;  --z:0.9rem">💗</span>
+        <span style="--x:38%; --d:12s; --s:6s;  --z:1.3rem">🌷</span>
+        <span style="--x:55%; --d:15s; --s:1s;  --z:1rem">🌸</span>
+        <span style="--x:70%; --d:13s; --s:4s;  --z:0.9rem">💗</span>
+        <span style="--x:84%; --d:16s; --s:7s;  --z:1.2rem">🌸</span>
+        <span style="--x:94%; --d:12s; --s:9s;  --z:1rem">🌷</span>
+    </div>
     <div class="login-card p-4 p-md-5 bg-white">
         <div class="text-center mb-4">
             <div class="mb-2" style="font-size: 3rem; color: #ec4899;"><i class="fa-solid fa-seedling"></i></div>

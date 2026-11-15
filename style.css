@@ -114,3 +114,25 @@ body {
 .table-hover tbody tr:hover { 
   background-color: rgba(214, 51, 132, 0.04); 
 }
+
+@keyframes drift     {
+  0%   { transform: translateY(-10vh) translateX(0) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 0.9; }
+  50%  { transform: translateY(50vh)  translateX(24px) rotate(180deg); }
+  90%  { opacity: 0.9; }
+  100% { transform: translateY(110vh) translateX(-18px) rotate(360deg); opacity: 0; }
+}
+
+.auth-card { animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; position: relative; z-index: 1; }
+.auth-logo { animation: bob 3.4s ease-in-out infinite; }
+.auth-logo i { animation: heartbeat 2.6s ease-in-out infinite; display: inline-block; }
+
+.petals { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.petals span {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  font-size: var(--z);
+  opacity: 0;
+  animation: drift var(--d) linear var(--s) infinite;
+}
