@@ -1,13 +1,19 @@
+
 /* Cropella Theme & Layout Styles */
 :root {
-  --primary-pink: #d63384;
-  --primary-pink-dark: #b02a70;
-  --bg-light: #fcf8fa;
+  --primary-pink: #E34F9B;
+  --primary-pink-dark: #C93683;
+  --brand-dark: #A52D75;
+  --brand-tint: #FCE4F0;
+  --bg-light: #FFF0F7;
+  --surface: #FFFFFF;
+  --border-subtle: #F5D6E6;
 }
 
-body { 
-  background-color: var(--bg-light); 
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+/* Base */
+body {
+  background-color: var(--bg-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-x: hidden;
 }
 
@@ -26,21 +32,21 @@ body {
 
 /* Desktop View: Fixed Sidebar on the Left */
 @media (min-width: 768px) {
-  .sidebar { 
+  .sidebar {
     min-height: 100vh;
-    height: 100vh; 
-    background: linear-gradient(180deg, var(--primary-pink) 0%, #85144b 100%); 
-    color: white; 
+    height: 100vh;
+    background: linear-gradient(180deg, #E34F9B 0%, #A52D75 100%);
+    color: white;
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     bottom: 0 !important;
     width: 260px !important;
-    overflow-y: auto;  
+    overflow-y: auto;
     z-index: 1000;
   }
 
-  /* Push the main dashboard content to the right so it sits neatly next to the 260px sidebar */
+  /* Push main dashboard content beside the sidebar */
   main.ms-sm-auto, .col-md-9 {
     margin-left: 260px !important;
     width: calc(100% - 260px) !important;
@@ -56,17 +62,16 @@ body {
   .sidebar {
     position: fixed !important;
     top: 0;
-    left: -260px; /* Hidden off-screen to the left by default */
+    left: -260px;
     width: 260px !important;
     height: 100vh !important;
     z-index: 2000;
-    background: linear-gradient(180deg, var(--primary-pink) 0%, #85144b 100%);
+    background: linear-gradient(180deg, #E34F9B 0%, #A52D75 100%);
     color: white;
-    transition: left 0.3s ease-in-out; /* Smooth sliding animation */
+    transition: left 0.3s ease-in-out;
     overflow-y: auto;
   }
 
-  /* When Bootstrap opens the collapse, slide it into view from the left */
   .sidebar.show {
     left: 0 !important;
   }
@@ -75,59 +80,92 @@ body {
     margin-left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding-left: 1rem !important;  
-    padding-right: 1.0rem !important; 
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
 }
 
-.sidebar .nav-link { 
-  color: rgba(255, 255, 255, 0.85); 
-  margin: 4px 0; 
-  border-radius: 8px; 
-  transition: all 0.25s ease; 
+/* Sidebar Navigation */
+.sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  margin: 4px 0;
+  border-radius: 8px;
+  transition: all 0.25s ease;
 }
 
-.sidebar .nav-link:hover, .sidebar .nav-link.active { 
-  color: white; 
-  background-color: rgba(255, 255, 255, 0.2); 
-  transform: translateX(4px); 
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(4px);
 }
 
-.btn-pink, .btn-success { 
-  background-color: var(--primary-pink); 
-  border-color: var(--primary-pink); 
-  color: white; 
-  transition: all 0.25s ease; 
+/* Buttons */
+.btn-pink, .btn-success {
+  background-color: var(--primary-pink);
+  border-color: var(--primary-pink);
+  color: white;
+  transition: all 0.25s ease;
 }
 
-.btn-pink:hover, .btn-success:hover { 
-  background-color: var(--primary-pink-dark); 
-  border-color: var(--primary-pink-dark); 
-  transform: translateY(-2px); 
+.btn-pink:hover, .btn-success:hover {
+  background-color: var(--primary-pink-dark);
+  border-color: var(--primary-pink-dark);
+  transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(214, 51, 132, 0.3);
 }
 
-.table-hover tbody tr { 
-  transition: all 0.2s ease; 
+/* Tables */
+.table-hover tbody tr {
+  transition: all 0.2s ease;
 }
 
-.table-hover tbody tr:hover { 
-  background-color: rgba(214, 51, 132, 0.04); 
+.table-hover tbody tr:hover {
+  background-color: rgba(227, 79, 155, 0.06);
 }
 
-@keyframes drift     {
-  0%   { transform: translateY(-10vh) translateX(0) rotate(0deg);   opacity: 0; }
-  10%  { opacity: 0.9; }
-  50%  { transform: translateY(50vh)  translateX(24px) rotate(180deg); }
-  90%  { opacity: 0.9; }
-  100% { transform: translateY(110vh) translateX(-18px) rotate(360deg); opacity: 0; }
+/* Falling Petals Animation - UNCHANGED */
+@keyframes drift {
+  0% {
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% { opacity: 0.9; }
+  50% {
+    transform: translateY(50vh) translateX(24px) rotate(180deg);
+  }
+  90% { opacity: 0.9; }
+  100% {
+    transform: translateY(110vh) translateX(-18px) rotate(360deg);
+    opacity: 0;
+  }
 }
 
-.auth-card { animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; position: relative; z-index: 1; }
-.auth-logo { animation: bob 3.4s ease-in-out infinite; }
-.auth-logo i { animation: heartbeat 2.6s ease-in-out infinite; display: inline-block; }
+/* Authentication Animations - UNCHANGED */
+.auth-card {
+  animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  position: relative;
+  z-index: 1;
+}
 
-.petals { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.auth-logo {
+  animation: bob 3.4s ease-in-out infinite;
+}
+
+.auth-logo i {
+  animation: heartbeat 2.6s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* Floating Petals - UNCHANGED */
+.petals {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .petals span {
   position: absolute;
   top: 0;

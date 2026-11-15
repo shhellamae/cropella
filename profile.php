@@ -145,7 +145,7 @@ if (!empty($isAdmin)) {
         .form-control:focus, .form-select:focus { border-color: #d63384 !important; box-shadow: 0 0 0 0.25rem rgba(214, 51, 132, 0.25) !important; }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
 <div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
     <div class="d-flex align-items-center"><i class="fa-solid fa-seedling me-2"></i><span class="fw-bold fs-5">Cropella</span></div>

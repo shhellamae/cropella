@@ -50,7 +50,7 @@ try {
 </head>
 <body>
 
-<div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
+<div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #9c2a68 100%);">
   <div class="d-flex align-items-center"><i class="fa-solid fa-wheat-awn me-2"></i><span class="fw-bold fs-5">Cropella</span></div>
   <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i> Menu</button>
 </div>
