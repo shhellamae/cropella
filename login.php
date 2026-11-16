@@ -18,18 +18,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
+                 if ($user['status'] === 'Deactivated') {
+                    $error_message = "Your account has been deactivated. Please contact the administrator.";
+                } else {
                 // Username is correct, now check the password
                 // Supports both password_verify() and plain-text fallback if applicable
-                if (password_verify($password, $user['password']) || $user['password'] === $password) {
-                    $_SESSION['user_id'] = $user['user_id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['full_name'] = $user['full_name'];
-                    $_SESSION['role_id'] = $user['role_id'];
+                    if (password_verify($password, $user['password']) || $user['password'] === $password) {
+                        $_SESSION['user_id'] = $user['user_id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['full_name'] = $user['full_name'];
+                        $_SESSION['role_id'] = $user['role_id'];
 
-                    header("Location: draftdashboard.php");
-                    exit();
-                } else {
-                    $error_message = "Incorrect password.";
+                        header("Location: draftdashboard.php");
+                        exit();
+                    } else {
+                        $error_message = "Incorrect password.";
+                    }
                 }
             } else {
                 $error_message = "Invalid username.";
