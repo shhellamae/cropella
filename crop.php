@@ -98,7 +98,7 @@ try {
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-        <div><h1 class="h2 text-dark fw-bold">CROPS CATALOG</h1><p class="text-muted mb-0">Master reference list of crop varieties and growing cycles.</p></div>
+        <div><h1 class="h2 text-dark fw-bold">CROPS</h1><p class="text-muted mb-0">Master reference list of crop varieties and growing cycles.</p></div>
         <?php if ($isAdmin): ?>
           <button type="button" class="btn btn-pink shadow-sm" data-bs-toggle="modal" data-bs-target="#newCropModal"><i class="fa-solid fa-plus me-1"></i> Add Crop</button>
         <?php else: ?>
