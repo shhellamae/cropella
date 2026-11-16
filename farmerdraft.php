@@ -28,8 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-try { $farmers = $wala->getAllFarmers($sort); }
-catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
+try { 
+    $farmers = $wala->getAllFarmers($sort); 
+    if (!is_array($farmers)) { $farmers = []; }
+} catch (\Exception $e) { 
+    $farmers = []; 
+    $connection_error = $e->getMessage(); 
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,14 +48,30 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
 </head>
 <body>
 
-<div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
-  <div class="d-flex align-items-center"><i class="fa-solid fa-wheat-awn me-2"></i><span class="fw-bold fs-5">Cropella</span></div>
-  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i> Menu</button>
+<!-- Mobile Header Bar: Burger icon & Cropella on the top-left -->
+<div class="text-white d-md-none p-3 d-flex align-items-center w-100 shadow-sm gap-3" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
+  <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Toggle navigation">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  <div class="d-flex align-items-center">
+    <i class="fa-solid fa-seedling me-2"></i>
+    <span class="fw-bold fs-5">Cropella</span>
+  </div>
 </div>
 
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-3 col-lg-2 d-md-block sidebar p-3 collapse" id="sidebarMenu">
+      <!-- Mobile Close Button Header inside Sidebar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 px-2 d-md-none">
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-seedling text-pink me-2"></i><span class="fs-4 fw-bold text-white">Cropella AIS</span>
+        </div>
+        <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
      <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
      
       <hr class="text-white-50 d-none d-md-block">
@@ -78,6 +99,7 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
       <?php if (isset($insertion_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($insertion_error); ?></div><?php endif; ?>
       <?php if (isset($update_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($update_error); ?></div><?php endif; ?>
       <?php if (isset($delete_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($delete_error); ?></div><?php endif; ?>
+      <?php if (isset($connection_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($connection_error); ?></div><?php endif; ?>
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
         <div><h1 class="h2 text-dark fw-bold">FARMERS MANAGEMENT</h1><p class="text-muted mb-0">Manage registered producer records.</p></div>
@@ -157,21 +179,24 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
 <!-- Add Farmer Modal -->
 <div class="modal fade" id="newFarmerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-    <form action="farmerdraft.php" method="POST" id="addFarmerForm">
+    <form action="farmerdraft.php" method="POST" id="addFarmerForm" onsubmit="return handleAddFarmerSubmit(event)">
       <div class="modal-header border-0"><h5 class="modal-title fw-bold">Add New Farmer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" name="add_farmer" value="1">
-        <div class="row g-2 mb-3"><div class="col-6"><label class="form-label">First Name</label><input type="text" class="form-control" name="first_name" required></div><div class="col-6"><label class="form-label">Last Name</label><input type="text" class="form-control" name="last_name" required></div></div>
+        <div class="row g-2 mb-3">
+          <div class="col-6"><label class="form-label">First Name</label><input type="text" class="form-control" name="first_name" required></div>
+          <div class="col-6"><label class="form-label">Last Name</label><input type="text" class="form-control" name="last_name" required></div>
+        </div>
         <div class="mb-3">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" name="contact_number" id="addContactNumber" required>
-          <div id="addContactError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>Contact number already exists.</div>
+          <input type="text" class="form-control" name="contact_number" id="addContactNumber" maxlength="11" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="e.g. 09123456789" required>
+          <div id="addContactError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i><span id="addContactErrorText">Contact number must be 11 digits.</span></div>
         </div>
-        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" name="address"></div>
+        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" name="address" required></div>
       </div>
       <div class="modal-footer border-0">
         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-pink btn-sm" onclick="validateAndConfirmAddFarmer()">Save Farmer</button>
+        <button type="submit" class="btn btn-pink btn-sm">Save Farmer</button>
       </div>
     </form>
   </div></div>
@@ -184,7 +209,7 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
     <div class="modal-body"><p class="text-muted">Are you sure you want to add this new farmer record?</p></div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-      <button type="button" class="btn btn-pink btn-sm" onclick="document.getElementById('addFarmerForm').submit()">Yes, Save</button>
+      <button type="button" class="btn btn-pink btn-sm" id="confirmAddSubmitBtn">Yes, Save</button>
     </div>
   </div></div>
 </div>
@@ -192,23 +217,26 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
 <!-- Edit Farmer Modal -->
 <div class="modal fade" id="editFarmerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
-    <form action="farmerdraft.php" method="POST" id="editFarmerForm">
+    <form action="farmerdraft.php" method="POST" id="editFarmerForm" onsubmit="return handleEditFarmerSubmit(event)">
       <div class="modal-header border-0"><h5 class="modal-title fw-bold">Edit Farmer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" name="update_farmer" value="1">
         <input type="hidden" id="edit_farmer_id" name="farmer_id">
         <input type="hidden" id="editOriginalContact">
-        <div class="row g-2 mb-3"><div class="col-6"><label class="form-label">First Name</label><input type="text" class="form-control" id="edit_first_name" name="first_name" required></div><div class="col-6"><label class="form-label">Last Name</label><input type="text" class="form-control" id="edit_last_name" name="last_name" required></div></div>
+        <div class="row g-2 mb-3">
+          <div class="col-6"><label class="form-label">First Name</label><input type="text" class="form-control" id="edit_first_name" name="first_name" required></div>
+          <div class="col-6"><label class="form-label">Last Name</label><input type="text" class="form-control" id="edit_last_name" name="last_name" required></div>
+        </div>
         <div class="mb-3">
           <label class="form-label">Contact Number</label>
-          <input type="text" class="form-control" id="edit_contact_number" name="contact_number" required>
-          <div id="editContactError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>Contact number already exists.</div>
+          <input type="text" class="form-control" id="edit_contact_number" name="contact_number" maxlength="11" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+          <div id="editContactError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editContactErrorText">Contact number must be 11 digits.</span></div>
         </div>
-        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" id="edit_address" name="address"></div>
+        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" id="edit_address" name="address" required></div>
       </div>
       <div class="modal-footer border-0">
         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-pink btn-sm" onclick="validateAndConfirmEditFarmer()">Update Changes</button>
+        <button type="submit" class="btn btn-pink btn-sm">Update Changes</button>
       </div>
     </form>
   </div></div>
@@ -221,7 +249,7 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
     <div class="modal-body"><p class="text-muted">Are you sure you want to save changes to this farmer record?</p></div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-      <button type="button" class="btn btn-pink btn-sm" onclick="document.getElementById('editFarmerForm').submit()">Yes, Save</button>
+      <button type="button" class="btn btn-pink btn-sm" id="confirmEditSubmitBtn">Yes, Save</button>
     </div>
   </div></div>
 </div>
@@ -236,10 +264,30 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Array of existing contact numbers loaded from PHP
   const existingContacts = [
-    <?php foreach ($farmers as $f) { if(!empty($f['contact_number'])) { echo '"' . htmlspecialchars($f['contact_number']) . '",'; } } ?>
+    <?php if (!empty($farmers) && is_array($farmers)) { foreach ($farmers as $f) { if(!empty($f['contact_number'])) { echo '"' . htmlspecialchars($f['contact_number']) . '",'; } } } ?>
   ];
+
+  document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtns = document.querySelectorAll('[data-bs-target="#sidebarMenu"]');
+      let clickedToggle = false;
+      toggleBtns.forEach(btn => { if (btn.contains(event.target)) clickedToggle = true; });
+      if (sidebar.classList.contains('show') && !sidebar.contains(event.target) && !clickedToggle) {
+          const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+          bsCollapse.hide();
+      }
+  });
+
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+          const sidebar = document.getElementById('sidebarMenu');
+          if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+              const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+              bsCollapse.hide();
+          }
+      });
+  });
 
   document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', function() {
     document.getElementById('view_farmer_id').textContent = '#' + this.dataset.id;
@@ -261,53 +309,91 @@ catch (\Exception $e) { $farmers = []; $connection_error = $e->getMessage(); }
     new bootstrap.Modal(document.getElementById('editFarmerModal')).show();
   }
 
-  // Validate Add Farmer Contact Duplication
-  function validateAndConfirmAddFarmer() {
+  let isAddConfirmed = false;
+  function handleAddFarmerSubmit(event) {
+    if (isAddConfirmed) return true;
+    event.preventDefault();
+    let form = document.getElementById('addFarmerForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+
     let contactInput = document.getElementById('addContactNumber');
     let contactVal = contactInput.value.trim();
     let errorDiv = document.getElementById('addContactError');
+    let errorText = document.getElementById('addContactErrorText');
 
-    if (!contactVal) {
-        alert('Contact number cannot be empty.');
-        return;
+    if (contactVal.length !== 11) {
+        errorText.textContent = 'Contact number must be exactly 11 digits.';
+        errorDiv.style.display = 'block';
+        contactInput.classList.add('is-invalid');
+        return false;
     }
 
     if (existingContacts.includes(contactVal)) {
+        errorText.textContent = 'Contact number already exists.';
         errorDiv.style.display = 'block';
         contactInput.classList.add('is-invalid');
-        return;
-    } else {
-        errorDiv.style.display = 'none';
-        contactInput.classList.remove('is-invalid');
+        return false;
     }
 
+    errorDiv.style.display = 'none';
+    contactInput.classList.remove('is-invalid');
+
     bootstrap.Modal.getInstance(document.getElementById('newFarmerModal')).hide();
-    new bootstrap.Modal(document.getElementById('confirmAddFarmerModal')).show();
+    let confirmModal = new bootstrap.Modal(document.getElementById('confirmAddFarmerModal'));
+    confirmModal.show();
+
+    document.getElementById('confirmAddSubmitBtn').onclick = function() {
+        isAddConfirmed = true;
+        form.submit();
+    };
+    return false;
   }
 
-  // Validate Edit Farmer Contact Duplication
-  function validateAndConfirmEditFarmer() {
+  let isEditConfirmed = false;
+  function handleEditFarmerSubmit(event) {
+    if (isEditConfirmed) return true;
+    event.preventDefault();
+    let form = document.getElementById('editFarmerForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+
     let contactInput = document.getElementById('edit_contact_number');
     let contactVal = contactInput.value.trim();
     let originalVal = document.getElementById('editOriginalContact').value;
     let errorDiv = document.getElementById('editContactError');
+    let errorText = document.getElementById('editContactErrorText');
 
-    if (!contactVal) {
-        alert('Contact number cannot be empty.');
-        return;
+    if (contactVal.length !== 11) {
+        errorText.textContent = 'Contact number must be exactly 11 digits.';
+        errorDiv.style.display = 'block';
+        contactInput.classList.add('is-invalid');
+        return false;
     }
 
     if (contactVal !== originalVal && existingContacts.includes(contactVal)) {
+        errorText.textContent = 'Contact number already exists.';
         errorDiv.style.display = 'block';
         contactInput.classList.add('is-invalid');
-        return;
-    } else {
-        errorDiv.style.display = 'none';
-        contactInput.classList.remove('is-invalid');
+        return false;
     }
 
+    errorDiv.style.display = 'none';
+    contactInput.classList.remove('is-invalid');
+
     bootstrap.Modal.getInstance(document.getElementById('editFarmerModal')).hide();
-    new bootstrap.Modal(document.getElementById('confirmEditFarmerModal')).show();
+    let confirmModal = new bootstrap.Modal(document.getElementById('confirmEditFarmerModal'));
+    confirmModal.show();
+
+    document.getElementById('confirmEditSubmitBtn').onclick = function() {
+        isEditConfirmed = true;
+        form.submit();
+    };
+    return false;
   }
 
   <?php if ($isAdmin): ?>
