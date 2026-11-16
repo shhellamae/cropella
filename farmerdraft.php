@@ -13,8 +13,14 @@ $next = ($sort === 'ASC') ? 'desc' : 'asc';
 if (isset($_GET['delete_id'])) {
     if (!$isAdmin) { $delete_error = "Access denied: Admins only."; }
     else {
-        try { $wala->DeleteFarmer($_GET['delete_id']); header("Location: farmerdraft.php"); exit(); }
-        catch (\Exception $e) { $delete_error = $e->getMessage(); }
+        try { 
+            $wala->DeleteFarmer($_GET['delete_id']); 
+            header("Location: farmerdraft.php"); 
+            exit(); 
+        }
+        catch (\Exception $e) { 
+            $delete_error = $e->getMessage(); 
+        }
     }
 }
 

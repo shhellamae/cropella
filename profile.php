@@ -29,16 +29,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Failed to update profile. Username might already be taken.";
         }
     } elseif (!empty($isAdmin) && $action === 'create_user') {
-        $data = [
-            'username' => trim($_POST['username']), 
-            'full_name' => trim($_POST['full_name']), 
-            'password' => $_POST['password'],
-            'role_id' => $_POST['role_id']
-        ];
-        if ($wala->createUser($data)) {
-            $success = "User account created successfully.";
+        $password = $_POST['password'];
+        if (strlen($password) < 8 || strlen($password) > 15) {
+            $error = "Password must be between 8 and 15 characters long.";
         } else {
-            $error = "Failed to create user account. The username is already taken.";
+            $data = [
+                'username' => trim($_POST['username']), 
+                'full_name' => trim($_POST['full_name']), 
+                'password' => $password,
+                'role_id' => $_POST['role_id']
+            ];
+            if ($wala->createUser($data)) {
+                $success = "User account created successfully.";
+            } else {
+                $error = "Failed to create user account. The username is already taken.";
+            }
         }
     } elseif (!empty($isAdmin) && $action === 'update_user') {
         $data = [
@@ -389,8 +394,9 @@ if (!empty($isAdmin)) {
                         <input type="text" name="full_name" id="createFullName" class="form-control text-dark" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Password <span class="text-danger">*</span> <span class="text-muted fw-normal">(Plain text)</span></label>
-                        <input type="password" name="password" id="createPassword" class="form-control text-dark" required>
+                        <label class="form-label fw-bold">Password <span class="text-danger">*</span> <span class="text-muted fw-normal">(8 to 15 characters)</span></label>
+                        <input type="password" name="password" id="createPassword" class="form-control text-dark" minlength="8" maxlength="15" required>
+                        <div id="passwordLengthError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>Password must be between 8 and 15 characters long.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
@@ -402,6 +408,20 @@ if (!empty($isAdmin)) {
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-pink">Create Account</button></div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Account Confirmation Sub-Modal -->
+<div class="modal fade" id="confirmCreateAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Confirm Account Creation</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body text-start">Are you sure you want to create this new user account?</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-pink btn-sm" id="confirmCreateSubmitBtn">Yes, Create</button>
+            </div>
         </div>
     </div>
 </div>
@@ -424,6 +444,10 @@ if (!empty($isAdmin)) {
             <form method="POST" id="sharedEditForm" onsubmit="return handleEditSubmit(event)">
                 <div class="modal-header"><h5 class="modal-title" id="editModalTitle"><i class="fa-solid fa-pen text-pink"></i> Admin: Edit Account</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body text-start">
+                    <!-- Inline No-Changes Text Alert -->
+                    <div id="editAccountAlert" class="text-danger small mb-3" style="display: none;">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>No changes were made to this account.
+                    </div>
                     <input type="hidden" name="action" value="update_user">
                     <input type="hidden" name="user_id" id="editUserId">
                     <input type="hidden" id="editOriginalUsername">
@@ -572,6 +596,7 @@ function openEditModal(user) {
     document.getElementById('editOriginalFullName').value = user.full_name;
     document.getElementById('editRoleId').value = user.role_id;
     document.getElementById('editOriginalRoleId').value = user.role_id;
+    document.getElementById('editAccountAlert').style.display = 'none';
     document.getElementById('editUsernameError').style.display = 'none';
     document.getElementById('editUsername').classList.remove('is-invalid');
     document.getElementById('editModalTitle').innerHTML = `<i class="fa-solid fa-pen text-pink"></i> Admin: Edit Account: ${user.username}`;
@@ -592,16 +617,47 @@ function openDeleteModal(userId, username) {
     new bootstrap.Modal(document.getElementById('sharedDeleteModal')).show();
 }
 
+let isCreateConfirmed = false;
 function handleCreateSubmit(event) {
+    if (isCreateConfirmed) return true;
+    event.preventDefault();
+
+    let form = document.getElementById('createAccountForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return false;
+    }
+
+    let password = document.getElementById('createPassword').value;
+    let lengthErrorDiv = document.getElementById('passwordLengthError');
+    if (password.length < 8 || password.length > 15) {
+        lengthErrorDiv.style.display = 'block';
+        document.getElementById('createPassword').classList.add('is-invalid');
+        return false;
+    } else {
+        lengthErrorDiv.style.display = 'none';
+        document.getElementById('createPassword').classList.remove('is-invalid');
+    }
+
     let username = document.getElementById('createUsername').value.trim();
     let errorDiv = document.getElementById('usernameError');
     if (existingUsernames.includes(username)) {
-        event.preventDefault();
         errorDiv.style.display = 'block';
+        document.getElementById('createUsername').classList.add('is-invalid');
         return false;
     }
     errorDiv.style.display = 'none';
-    return true;
+    document.getElementById('createUsername').classList.remove('is-invalid');
+
+    bootstrap.Modal.getInstance(document.getElementById('createModal')).hide();
+    let confirmModal = new bootstrap.Modal(document.getElementById('confirmCreateAccountModal'));
+    confirmModal.show();
+
+    document.getElementById('confirmCreateSubmitBtn').onclick = function() {
+        isCreateConfirmed = true;
+        form.submit();
+    };
+    return false;
 }
 
 function handleEditSubmit(event) {
@@ -612,13 +668,16 @@ function handleEditSubmit(event) {
     let origUsername = document.getElementById('editOriginalUsername').value;
     let origFullName = document.getElementById('editOriginalFullName').value;
     let origRoleId = document.getElementById('editOriginalRoleId').value;
+    let alertDiv = document.getElementById('editAccountAlert');
     let errorDiv = document.getElementById('editUsernameError');
 
     if (username === origUsername && fullName === origFullName && roleId === origRoleId) {
         event.preventDefault();
-        alert('No changes were made to this account.');
+        alertDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
         return false;
     }
+    alertDiv.style.display = 'none';
 
     if (username !== origUsername && existingUsernames.includes(username)) {
         event.preventDefault();

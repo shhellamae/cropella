@@ -472,6 +472,16 @@
         }
 
         public function deleteFarmer($id) {
+            // Check if any farms are connected to this farmer
+            $checkStmt = $this->pdo->prepare("SELECT COUNT(*) FROM farm WHERE farmer_id = ?");
+            $checkStmt->execute([$id]);
+            $farmCount = $checkStmt->fetchColumn();
+
+            if ($farmCount > 0) {
+                throw new \Exception("Cannot delete this farmer because they are connected to one or more active farms.");
+            }
+
+            // Proceed with deletion if no farms are connected
             $stmt = $this->pdo->prepare("DELETE FROM farmer WHERE farmer_id = ?");
             $success = $stmt->execute([$id]);
             
