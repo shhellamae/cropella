@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 require_once "Database.php";
 require_once "db_function.php";
 
