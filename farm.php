@@ -30,9 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 try {
     $farms = $wala->getAllFarms($sort);
+    if (!is_array($farms)) { $farms = []; }
     $farmers = $wala->getAllFarmers('ASC');
+    if (!is_array($farmers)) { $farmers = []; }
     $soilTypes = $wala->getAllSoilTypes();
+    if (!is_array($soilTypes)) { $soilTypes = []; }
     $irrigationTypes = $wala->getAllIrrigationTypes();
+    if (!is_array($irrigationTypes)) { $irrigationTypes = []; }
 } catch (\Exception $e) {
     $farms = $farmers = $soilTypes = $irrigationTypes = [];
     $connection_error = $e->getMessage();
@@ -50,14 +54,26 @@ try {
 </head>
 <body>
 
-<div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #9c2a68 100%);">
-  <div class="d-flex align-items-center"><i class="fa-solid fa-wheat-awn me-2"></i><span class="fw-bold fs-5">Cropella</span></div>
-  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i> Menu</button>
+<!-- Mobile Header Bar: Burger icon & Cropella on the top-left -->
+<div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
+  <div class="d-flex align-items-center"><i class="fa-solid fa-seedling me-2"></i><span class="fw-bold fs-5">Cropella AIS</span></div>
+  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i></button>
 </div>
+
 
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-3 col-lg-2 d-md-block sidebar p-3 collapse" id="sidebarMenu">
+      <!-- Mobile Close Button Header inside Sidebar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 px-2 d-md-none">
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-seedling text-pink me-2"></i><span class="fs-4 fw-bold text-white">Cropella AIS</span>
+        </div>
+        <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
       <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
       
       <hr class="text-white-50 d-none d-md-block">
@@ -65,9 +81,9 @@ try {
         <li class="nav-item"><a href="draftdashboard.php" class="nav-link"><i class="fa-solid fa-chart-pie me-2"></i> Dashboard</a></li>
         <li><a href="farmerdraft.php" class="nav-link"><i class="fa-solid fa-user-gear me-2"></i> Farmers</a></li>
         <li><a href="farm.php" class="nav-link active"><i class="fa-solid fa-location-dot me-2"></i> Farms</a></li>
-        <li><a href="crop.php" class="nav-link"><i class="fa-solid fa-seedling me-2"></i> Crops Catalog</a></li>
-        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting Records</a></li>
-        <li><a href="harvest.php" class="nav-link"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest Records</a></li>
+        <li><a href="crop.php" class="nav-link"><i class="fa-solid fa-seedling me-2"></i> Crops</a></li>
+        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting</a></li>
+        <li><a href="harvest.php" class="nav-link"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest</a></li>
         <li><a href="report.php" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
         <?php if ($isAdmin): ?><li><a href="audit_log.php" class="nav-link"><i class="fa-solid fa-clock-rotate-left me-2"></i> Audit Logs</a></li><?php endif; ?>
       </ul>
@@ -91,6 +107,7 @@ try {
       <?php if (isset($delete_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($delete_error); ?></div><?php endif; ?>
       <?php if (isset($insertion_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($insertion_error); ?></div><?php endif; ?>
       <?php if (isset($update_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($update_error); ?></div><?php endif; ?>
+      <?php if (isset($connection_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($connection_error); ?></div><?php endif; ?>
 
       <div class="card border-0 shadow-sm rounded-3 mb-4">
         <div class="card-body bg-white py-3">
@@ -130,7 +147,7 @@ try {
                     <td><span class="badge bg-light text-dark border"><?php echo htmlspecialchars($f['irrigation_type'] ?? 'N/A'); ?></span></td>
                     <td class="text-end">
                       <div class="d-flex justify-content-end gap-1">
-                        <button class="btn btn-sm btn-outline-info view-btn" data-bs-toggle="modal" data-bs-target="#viewFarmModal" data-id="<?php echo $f['farm_id']; ?>" data-farmer="<?php echo htmlspecialchars($f['first_name'] . ' ' . $f['last_name']); ?>" data-farmname="<?php echo htmlspecialchars($f['farm_name']); ?>" data-location="<?php echo htmlspecialchars($f['location']); ?>" data-area="<?php echo $f['area_hectares']; ?>" data-soil="<?php echo htmlspecialchars($f['soil_type'] ?? 'N/A'); ?>" data-irrigation="<?php echo htmlspecialchars($f['irrigation_type'] ?? 'N/A');?>" data-status="<?php echo htmlspecialchars($f['status'] ?? 'Active'); ?>"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-info view-btn" data-bs-toggle="modal" data-bs-target="#viewFarmModal" data-id="<?php echo $f['farm_id']; ?>" data-farmer="<?php echo htmlspecialchars($f['first_name'] . ' ' . $f['last_name']); ?>" data-farmname="<?php echo htmlspecialchars($f['farm_name']); ?>" data-location="<?php echo htmlspecialchars($f['location']); ?>" data-area="<?php echo $f['area_hectares']; ?>" data-soil="<?php echo htmlspecialchars($f['soil_type'] ?? 'N/A'); ?>" data-irrigation="<?php echo htmlspecialchars($f['irrigation_type'] ?? 'N/A');?>"><i class="fa-solid fa-eye"></i></button>
                         <button class="btn btn-sm btn-outline-primary edit-btn" onclick='openEditModal(<?php echo json_encode($f); ?>)'><i class="fa-solid fa-pen"></i></button>
                         <?php if ($isAdmin): ?><button class="btn btn-sm btn-outline-danger delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="<?php echo $f['farm_id']; ?>"><i class="fa-solid fa-trash"></i></button><?php endif; ?>
                       </div>
@@ -174,14 +191,32 @@ try {
     <div class="modal-body">
       <div id="addFarmError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This data already exists.</div>
       <input type="hidden" name="add_farm" value="1">
-      <div class="mb-3"><label class="form-label">Farmer</label><select class="form-select" name="farmer_id" required><option value="" disabled selected>-- Select Farmer --</option><?php foreach ($farmers as $f): ?><option value="<?php echo $f['farmer_id']; ?>"><?php echo htmlspecialchars($f['first_name'] . ' ' . $f['last_name']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Farm Name</label><input type="text" class="form-control" name="farm_name" required></div>
-      <div class="mb-3"><label class="form-label">Location</label><input type="text" class="form-control" name="location"></div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Area (ha)</label><input type="number" step="0.01" class="form-control" name="area_hectares" required></div>
-        <div class="col-6"><label class="form-label">Soil Type</label><select class="form-select" name="soil_id"><option value="">-- Select --</option><?php foreach ($soilTypes as $st): ?><option value="<?php echo $st['soil_id']; ?>"><?php echo htmlspecialchars($st['soil_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="mb-3">
+        <label class="form-label">Farmer <span class="text-danger">*</span></label>
+        <select class="form-select" name="farmer_id" required>
+          <option value="" disabled selected>-- Select Farmer --</option>
+          <?php foreach ($farmers as $f): ?><option value="<?php echo $f['farmer_id']; ?>"><?php echo htmlspecialchars($f['first_name'] . ' ' . $f['last_name']); ?></option><?php endforeach; ?>
+        </select>
       </div>
-      <div class="mb-3"><label class="form-label">Irrigation Type</label><select class="form-select" name="irrigation_id"><option value="">-- Select --</option><?php foreach ($irrigationTypes as $it): ?><option value="<?php echo $it['irrigation_id']; ?>"><?php echo htmlspecialchars($it['irrigation_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="mb-3"><label class="form-label">Farm Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="farm_name" required></div>
+      <div class="mb-3"><label class="form-label">Location <span class="text-danger">*</span></label><input type="text" class="form-control" name="location" required></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="form-label">Area (ha) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="area_hectares" required></div>
+        <div class="col-6">
+          <label class="form-label">Soil Type <span class="text-danger">*</span></label>
+          <select class="form-select" name="soil_id" required>
+            <option value="" disabled selected>-- Select Soil --</option>
+            <?php foreach ($soilTypes as $st): ?><option value="<?php echo $st['soil_id']; ?>"><?php echo htmlspecialchars($st['soil_description']); ?></option><?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Irrigation Type <span class="text-danger">*</span></label>
+        <select class="form-select" name="irrigation_id" required>
+          <option value="" disabled selected>-- Select Irrigation --</option>
+          <?php foreach ($irrigationTypes as $it): ?><option value="<?php echo $it['irrigation_id']; ?>"><?php echo htmlspecialchars($it['irrigation_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetFarmForm('addFarmForm', 'addFarmError')">Cancel</button>
@@ -208,17 +243,47 @@ try {
       <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetFarmForm('editFarmForm', 'editFarmError')"></button>
     </div>
     <div class="modal-body">
+      <!-- Alert banner for No-Changes detection -->
+      <div id="editFarmAlert" class="alert alert-danger py-2 small mb-3" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editFarmAlertText">No changes were made to this farm record.</span>
+      </div>
+
       <div id="editFarmError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This data already exists.</div>
+      
       <input type="hidden" name="update_farm" value="1">
       <input type="hidden" id="edit_farm_id" name="farm_id">
-      <div class="mb-3"><label class="form-label">Farmer</label><select class="form-select" id="edit_farmer_id" name="farmer_id" required><?php foreach ($farmers as $f): ?><option value="<?php echo $f['farmer_id']; ?>"><?php echo htmlspecialchars($f['first_name'] . ' ' . $f['last_name']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Farm Name</label><input type="text" class="form-control" id="edit_farm_name" name="farm_name" required></div>
-      <div class="mb-3"><label class="form-label">Location</label><input type="text" class="form-control" id="edit_location" name="location"></div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Area (ha)</label><input type="number" step="0.01" class="form-control" id="edit_area_hectares" name="area_hectares" required></div>
-        <div class="col-6"><label class="form-label">Soil Type</label><select class="form-select" id="edit_soil_id" name="soil_id"><option value="">-- Select --</option><?php foreach ($soilTypes as $st): ?><option value="<?php echo $st['soil_id']; ?>"><?php echo htmlspecialchars($st['soil_description']); ?></option><?php endforeach; ?></select></div>
+
+      <!-- Hidden Original State Inputs for No-Change Detection -->
+      <input type="hidden" id="original_farmer_id">
+      <input type="hidden" id="original_farm_name">
+      <input type="hidden" id="original_location">
+      <input type="hidden" id="original_area_hectares">
+      <input type="hidden" id="original_soil_id">
+      <input type="hidden" id="original_irrigation_id">
+
+      <div class="mb-3">
+        <label class="form-label">Farmer <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_farmer_id" name="farmer_id" required>
+          <?php foreach ($farmers as $f): ?><option value="<?php echo $f['farmer_id']; ?>"><?php echo htmlspecialchars($f['first_name'] . ' ' . $f['last_name']); ?></option><?php endforeach; ?>
+        </select>
       </div>
-      <div class="mb-3"><label class="form-label">Irrigation Type</label><select class="form-select" id="edit_irrigation_id" name="irrigation_id"><option value="">-- Select --</option><?php foreach ($irrigationTypes as $it): ?><option value="<?php echo $it['irrigation_id']; ?>"><?php echo htmlspecialchars($it['irrigation_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="mb-3"><label class="form-label">Farm Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_farm_name" name="farm_name" required></div>
+      <div class="mb-3"><label class="form-label">Location <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_location" name="location" required></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="form-label">Area (ha) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="edit_area_hectares" name="area_hectares" required></div>
+        <div class="col-6">
+          <label class="form-label">Soil Type <span class="text-danger">*</span></label>
+          <select class="form-select" id="edit_soil_id" name="soil_id" required>
+            <?php foreach ($soilTypes as $st): ?><option value="<?php echo $st['soil_id']; ?>"><?php echo htmlspecialchars($st['soil_description']); ?></option><?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Irrigation Type <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_irrigation_id" name="irrigation_id" required>
+          <?php foreach ($irrigationTypes as $it): ?><option value="<?php echo $it['irrigation_id']; ?>"><?php echo htmlspecialchars($it['irrigation_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetFarmForm('editFarmForm', 'editFarmError')">Cancel</button>
@@ -256,6 +321,27 @@ try {
     ];
   }, $farms)); ?>;
 
+  document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtns = document.querySelectorAll('[data-bs-target="#sidebarMenu"]');
+      let clickedToggle = false;
+      toggleBtns.forEach(btn => { if (btn.contains(event.target)) clickedToggle = true; });
+      if (sidebar.classList.contains('show') && !sidebar.contains(event.target) && !clickedToggle) {
+          const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+          bsCollapse.hide();
+      }
+  });
+
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+          const sidebar = document.getElementById('sidebarMenu');
+          if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+              const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+              bsCollapse.hide();
+          }
+      });
+  });
+
   document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', function() {
     document.getElementById('view_farm_id').textContent = '#' + this.dataset.id;
     document.getElementById('view_farm_name').textContent = this.dataset.farmname;
@@ -264,7 +350,6 @@ try {
     document.getElementById('view_area').textContent = this.dataset.area + ' ha';
     document.getElementById('view_soil').textContent = this.dataset.soil;
     document.getElementById('view_irrigation').textContent = this.dataset.irrigation;
-    document.getElementById('view_status').textContent = this.dataset.status;
   }));
 
   function openEditModal(farm) {
@@ -275,14 +360,27 @@ try {
     document.getElementById('edit_area_hectares').value = farm.area_hectares;
     document.getElementById('edit_soil_id').value = farm.soil_id || '';
     document.getElementById('edit_irrigation_id').value = farm.irrigation_id || '';
+
+    // Store original values for no-change detection
+    document.getElementById('original_farmer_id').value = farm.farmer_id;
+    document.getElementById('original_farm_name').value = farm.farm_name;
+    document.getElementById('original_location').value = farm.location || '';
+    document.getElementById('original_area_hectares').value = farm.area_hectares;
+    document.getElementById('original_soil_id').value = farm.soil_id || '';
+    document.getElementById('original_irrigation_id').value = farm.irrigation_id || '';
     
     document.getElementById('editFarmError').style.display = 'none';
+    const editAlert = document.getElementById('editFarmAlert');
+    if (editAlert) editAlert.style.display = 'none';
+
     new bootstrap.Modal(document.getElementById('editFarmModal')).show();
   }
 
   function resetFarmForm(formId, errorId) {
     document.getElementById(formId).reset();
     document.getElementById(errorId).style.display = 'none';
+    const editAlert = document.getElementById('editFarmAlert');
+    if (editAlert) editAlert.style.display = 'none';
   }
 
   document.getElementById('addFarmForm')?.addEventListener('submit', function(e) {
@@ -311,10 +409,30 @@ try {
   document.getElementById('editFarmForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const currentId = document.getElementById('edit_farm_id').value;
-    const farmerId = this.querySelector('[name="farmer_id"]').value.trim();
-    const farmName = this.querySelector('[name="farm_name"]').value.trim();
-    const location = this.querySelector('[name="location"]').value.trim();
+    const farmerId = document.getElementById('edit_farmer_id').value.trim();
+    const farmName = document.getElementById('edit_farm_name').value.trim();
+    const location = document.getElementById('edit_location').value.trim();
+    const area = document.getElementById('edit_area_hectares').value.trim();
+    const soilId = document.getElementById('edit_soil_id').value;
+    const irrigationId = document.getElementById('edit_irrigation_id').value;
+
+    const origFarmerId = document.getElementById('original_farmer_id').value;
+    const origFarmName = document.getElementById('original_farm_name').value;
+    const origLocation = document.getElementById('original_location').value;
+    const origArea = document.getElementById('original_area_hectares').value;
+    const origSoilId = document.getElementById('original_soil_id').value;
+    const origIrrigationId = document.getElementById('original_irrigation_id').value;
+
+    const alertDiv = document.getElementById('editFarmAlert');
     const errorEl = document.getElementById('editFarmError');
+
+    // Check if nothing was changed
+    if (farmerId === origFarmerId && farmName === origFarmName && location === origLocation && area === origArea && soilId === origSoilId && irrigationId === origIrrigationId) {
+      alertDiv.style.display = 'block';
+      errorEl.style.display = 'none';
+      return;
+    }
+    alertDiv.style.display = 'none';
 
     const isDuplicate = existingFarms.some(f => {
       if (f.id === String(currentId)) return false;

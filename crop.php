@@ -31,8 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 try {
     $crops = $wala->getAllCrops($sort);
+    if (!is_array($crops)) { $crops = []; }
     $categories = $wala->getAllCropCategories();
+    if (!is_array($categories)) { $categories = []; }
     $seasons = $wala->getAllSeasons();
+    if (!is_array($seasons)) { $seasons = []; }
 } catch (\Exception $e) {
     $crops = $categories = $seasons = [];
     $connection_error = $e->getMessage();
@@ -51,13 +54,24 @@ try {
 <body>
 
 <div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
-  <div class="d-flex align-items-center"><i class="fa-solid fa-wheat-awn me-2"></i><span class="fw-bold fs-5">Cropella</span></div>
-  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i> Menu</button>
+  <div class="d-flex align-items-center"><i class="fa-solid fa-seedling me-2"></i><span class="fw-bold fs-5">Cropella AIS</span></div>
+  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i></button>
 </div>
+
 
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-3 col-lg-2 d-md-block sidebar p-3 collapse" id="sidebarMenu">
+      <!-- Mobile Close Button Header inside Sidebar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 px-2 d-md-none">
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-seedling text-pink me-2"></i><span class="fs-4 fw-bold text-white">Cropella AIS</span>
+        </div>
+        <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
       <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
       
       <hr class="text-white-50 d-none d-md-block">
@@ -65,9 +79,9 @@ try {
         <li class="nav-item"><a href="draftdashboard.php" class="nav-link"><i class="fa-solid fa-chart-pie me-2"></i> Dashboard</a></li>
         <li><a href="farmerdraft.php" class="nav-link"><i class="fa-solid fa-user-gear me-2"></i> Farmers</a></li>
         <li><a href="farm.php" class="nav-link"><i class="fa-solid fa-location-dot me-2"></i> Farms</a></li>
-        <li><a href="crop.php" class="nav-link active"><i class="fa-solid fa-seedling me-2"></i> Crops Catalog</a></li>
-        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting Records</a></li>
-        <li><a href="harvest.php" class="nav-link"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest Records</a></li>
+        <li><a href="crop.php" class="nav-link active"><i class="fa-solid fa-seedling me-2"></i> Crops</a></li>
+        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting</a></li>
+        <li><a href="harvest.php" class="nav-link"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest</a></li>
         <li><a href="report.php" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
         <?php if ($isAdmin): ?><li><a href="audit_log.php" class="nav-link"><i class="fa-solid fa-clock-rotate-left me-2"></i> Audit Logs</a></li><?php endif; ?>
       </ul>
@@ -179,11 +193,26 @@ try {
     <div class="modal-body">
       <div id="addCropError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This crop and variety combination already exists.</div>
       <input type="hidden" name="add_crop" value="1">
-      <div class="mb-3"><label class="form-label">Crop Name</label><input type="text" class="form-control" name="crop_name" required></div>
-      <div class="mb-3"><label class="form-label">Variety</label><input type="text" class="form-control" name="variety"></div>
-      <div class="mb-3"><label class="form-label">Category</label><select class="form-select" name="category_id"><option value="">-- Select --</option><?php foreach ($categories as $cat): ?><option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_description']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Growing Period (Days)</label><input type="number" class="form-control" name="growing_period_days" required></div>
-      <div class="mb-3"><label class="form-label">Season</label><select class="form-select" name="season_id"><option value="">-- Select --</option><?php foreach ($seasons as $sea): ?><option value="<?php echo $sea['season_id']; ?>"><?php echo htmlspecialchars($sea['season_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="mb-3"><label class="form-label">Crop Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="crop_name" required></div>
+      <div class="mb-3"><label class="form-label">Variety <span class="text-danger">*</span></label><input type="text" class="form-control" name="variety" required></div>
+      <div class="mb-3">
+        <label class="form-label">Category <span class="text-danger">*</span></label>
+        <select class="form-select" name="category_id" required>
+          <option value="">-- Select Category --</option>
+          <?php foreach ($categories as $cat): ?><option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Growing Period (Days) <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="growing_period_days" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Season <span class="text-danger">*</span></label>
+        <select class="form-select" name="season_id" required>
+          <option value="">-- Select Season --</option>
+          <?php foreach ($seasons as $sea): ?><option value="<?php echo $sea['season_id']; ?>"><?php echo htmlspecialchars($sea['season_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetCropForm('addCropForm', 'addCropError')">Cancel</button>
@@ -210,14 +239,37 @@ try {
       <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetCropForm('editCropForm', 'editCropError')"></button>
     </div>
     <div class="modal-body">
-      <div id="editCropError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This crop and variety combination already exists.</div>
+      <div id="editCropError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editCropErrorText">This crop and variety combination already exists.</span></div>
       <input type="hidden" name="update_crop" value="1">
       <input type="hidden" id="edit_crop_id" name="crop_id">
-      <div class="mb-3"><label class="form-label">Crop Name</label><input type="text" class="form-control" id="edit_crop_name" name="crop_name" required></div>
-      <div class="mb-3"><label class="form-label">Variety</label><input type="text" class="form-control" id="edit_variety" name="variety"></div>
-      <div class="mb-3"><label class="form-label">Category</label><select class="form-select" id="edit_category_id" name="category_id"><option value="">-- Select --</option><?php foreach ($categories as $cat): ?><option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_description']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Growing Period (Days)</label><input type="number" class="form-control" id="edit_growing_period_days" name="growing_period_days" required></div>
-      <div class="mb-3"><label class="form-label">Season</label><select class="form-select" id="edit_season_id" name="season_id"><option value="">-- Select --</option><?php foreach ($seasons as $sea): ?><option value="<?php echo $sea['season_id']; ?>"><?php echo htmlspecialchars($sea['season_description']); ?></option><?php endforeach; ?></select></div>
+      
+      <!-- Hidden Original State Inputs for No-Change Detection -->
+      <input type="hidden" id="original_crop_name">
+      <input type="hidden" id="original_variety">
+      <input type="hidden" id="original_category_id">
+      <input type="hidden" id="original_growing_period_days">
+      <input type="hidden" id="original_season_id">
+
+      <div class="mb-3"><label class="form-label">Crop Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_crop_name" name="crop_name" required></div>
+      <div class="mb-3"><label class="form-label">Variety <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_variety" name="variety" required></div>
+      <div class="mb-3">
+        <label class="form-label">Category <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_category_id" name="category_id" required>
+          <option value="">-- Select Category --</option>
+          <?php foreach ($categories as $cat): ?><option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Growing Period (Days) <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="edit_growing_period_days" name="growing_period_days" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Season <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_season_id" name="season_id" required>
+          <option value="">-- Select Season --</option>
+          <?php foreach ($seasons as $sea): ?><option value="<?php echo $sea['season_id']; ?>"><?php echo htmlspecialchars($sea['season_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetCropForm('editCropForm', 'editCropError')">Cancel</button>
@@ -253,6 +305,27 @@ try {
     ];
   }, $crops)); ?>;
 
+  document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtns = document.querySelectorAll('[data-bs-target="#sidebarMenu"]');
+      let clickedToggle = false;
+      toggleBtns.forEach(btn => { if (btn.contains(event.target)) clickedToggle = true; });
+      if (sidebar.classList.contains('show') && !sidebar.contains(event.target) && !clickedToggle) {
+          const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+          bsCollapse.hide();
+      }
+  });
+
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+          const sidebar = document.getElementById('sidebarMenu');
+          if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+              const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+              bsCollapse.hide();
+          }
+      });
+  });
+
   document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', function() {
     document.getElementById('view_crop_id').textContent = '#' + this.dataset.id;
     document.getElementById('view_crop_name').textContent = this.dataset.cropname;
@@ -260,7 +333,6 @@ try {
     document.getElementById('view_category').textContent = this.dataset.category;
     document.getElementById('view_period').textContent = this.dataset.period + ' days';
     document.getElementById('view_season').textContent = this.dataset.season;
-    document.getElementById('view_status').textContent = this.dataset.status;
   }));
 
   function openEditModal(crop) {
@@ -270,6 +342,13 @@ try {
     document.getElementById('edit_category_id').value = crop.category_id || '';
     document.getElementById('edit_growing_period_days').value = crop.growing_period_days;
     document.getElementById('edit_season_id').value = crop.season_id || '';
+
+    // Store original values for no-change comparison
+    document.getElementById('original_crop_name').value = crop.crop_name;
+    document.getElementById('original_variety').value = crop.variety || '';
+    document.getElementById('original_category_id').value = crop.category_id || '';
+    document.getElementById('original_growing_period_days').value = crop.growing_period_days;
+    document.getElementById('original_season_id').value = crop.season_id || '';
     
     document.getElementById('editCropError').style.display = 'none';
     new bootstrap.Modal(document.getElementById('editCropModal')).show();
@@ -291,6 +370,7 @@ try {
     });
 
     if (isDuplicate) {
+      errorEl.textContent = 'This crop and variety combination already exists.';
       errorEl.style.display = 'block';
       return;
     }
@@ -303,9 +383,27 @@ try {
   document.getElementById('editCropForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const currentId = document.getElementById('edit_crop_id').value;
-    const cropName = this.querySelector('[name="crop_name"]').value.trim();
-    const variety = this.querySelector('[name="variety"]').value.trim();
+    const cropName = document.getElementById('edit_crop_name').value.trim();
+    const variety = document.getElementById('edit_variety').value.trim();
+    const categoryId = document.getElementById('edit_category_id').value;
+    const growingPeriod = document.getElementById('edit_growing_period_days').value.trim();
+    const seasonId = document.getElementById('edit_season_id').value;
+    
+    const origCropName = document.getElementById('original_crop_name').value;
+    const origVariety = document.getElementById('original_variety').value;
+    const origCategoryId = document.getElementById('original_category_id').value;
+    const origGrowingPeriod = document.getElementById('original_growing_period_days').value;
+    const origSeasonId = document.getElementById('original_season_id').value;
+
     const errorEl = document.getElementById('editCropError');
+    const errorText = document.getElementById('editCropErrorText');
+
+    // Check if nothing was changed
+    if (cropName === origCropName && variety === origVariety && categoryId === origCategoryId && growingPeriod === origGrowingPeriod && seasonId === origSeasonId) {
+      errorText.textContent = 'No changes were made to this crop record.';
+      errorEl.style.display = 'block';
+      return;
+    }
 
     const isDuplicate = existingCrops.some(c => {
       if (c.id === String(currentId)) return false;
@@ -313,6 +411,7 @@ try {
     });
 
     if (isDuplicate) {
+      errorText.textContent = 'This crop and variety combination already exists.';
       errorEl.style.display = 'block';
       return;
     }

@@ -30,9 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 try {
     $plantings = $wala->getAllPlantings($sort);
+    if (!is_array($plantings)) { $plantings = []; }
     $farms = $wala->getAllFarms('ASC');
+    if (!is_array($farms)) { $farms = []; }
     $crops = $wala->getAllCrops('ASC');
+    if (!is_array($crops)) { $crops = []; }
     $plantingStatuses = $wala->getAllPlantingStatuses();
+    if (!is_array($plantingStatuses)) { $plantingStatuses = []; }
 } catch (\Exception $e) {
     $plantings = $farms = $crops = $plantingStatuses = [];
     $connection_error = $e->getMessage();
@@ -50,14 +54,25 @@ try {
 </head>
 <body>
 
+<!-- Mobile Header Bar: Burger icon & Cropella on the top-left -->
 <div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
-  <div class="d-flex align-items-center"><i class="fa-solid fa-wheat-awn me-2"></i><span class="fw-bold fs-5">Cropella</span></div>
-  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i> Menu</button>
+  <div class="d-flex align-items-center"><i class="fa-solid fa-seedling me-2"></i><span class="fw-bold fs-5">Cropella AIS</span></div>
+  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i></button>
 </div>
 
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-3 col-lg-2 d-md-block sidebar p-3 collapse" id="sidebarMenu">
+      <!-- Mobile Close Button Header inside Sidebar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 px-2 d-md-none">
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-seedling text-pink me-2"></i><span class="fs-4 fw-bold text-white">Cropella AIS</span>
+        </div>
+        <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
       <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
       
       <hr class="text-white-50 d-none d-md-block">
@@ -91,6 +106,7 @@ try {
       <?php if (isset($delete_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($delete_error); ?></div><?php endif; ?>
       <?php if (isset($insertion_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($insertion_error); ?></div><?php endif; ?>
       <?php if (isset($update_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($update_error); ?></div><?php endif; ?>
+      <?php if (isset($connection_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($connection_error); ?></div><?php endif; ?>
 
       <div class="card border-0 shadow-sm rounded-3 mb-4">
         <div class="card-body bg-white py-3">
@@ -176,17 +192,35 @@ try {
     <div class="modal-body">
       <div id="addPlantingError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This planting record already exists for this farm, crop, and date.</div>
       <input type="hidden" name="add_planting" value="1">
-      <div class="mb-3"><label class="form-label">Farm</label><select class="form-select" name="farm_id" required><option value="" disabled selected>-- Select Farm --</option><?php foreach ($farms as $f): ?><option value="<?php echo $f['farm_id']; ?>"><?php echo htmlspecialchars($f['farm_name']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Crop</label><select class="form-select" name="crop_id" required><option value="" disabled selected>-- Select Crop --</option><?php foreach ($crops as $c): ?><option value="<?php echo $c['crop_id']; ?>"><?php echo htmlspecialchars($c['crop_name'] . ($c['variety'] ? ' - ' . $c['variety'] : '')); ?></option><?php endforeach; ?></select></div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Planting Date</label><input type="date" class="form-control" name="planting_date" required></div>
-        <div class="col-6"><label class="form-label">Expected Harvest</label><input type="date" class="form-control" name="expected_harvest_date"></div>
+      <div class="mb-3">
+        <label class="form-label">Farm <span class="text-danger">*</span></label>
+        <select class="form-select" name="farm_id" required>
+          <option value="" disabled selected>-- Select Farm --</option>
+          <?php foreach ($farms as $f): ?><option value="<?php echo $f['farm_id']; ?>"><?php echo htmlspecialchars($f['farm_name']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Crop <span class="text-danger">*</span></label>
+        <select class="form-select" name="crop_id" required>
+          <option value="" disabled selected>-- Select Crop --</option>
+          <?php foreach ($crops as $c): ?><option value="<?php echo $c['crop_id']; ?>"><?php echo htmlspecialchars($c['crop_name'] . ($c['variety'] ? ' - ' . $c['variety'] : '')); ?></option><?php endforeach; ?>
+        </select>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Area (ha)</label><input type="number" step="0.01" class="form-control" name="area_planted" required></div>
-        <div class="col-6"><label class="form-label">Seed Qty</label><input type="number" step="0.01" class="form-control" name="seed_quantity"></div>
+        <div class="col-6"><label class="form-label">Planting Date <span class="text-danger">*</span></label><input type="date" class="form-control" name="planting_date" required></div>
+        <div class="col-6"><label class="form-label">Expected Harvest <span class="text-danger">*</span></label><input type="date" class="form-control" name="expected_harvest_date" required></div>
       </div>
-      <div class="mb-3"><label class="form-label">Status</label><select class="form-select" name="status_id"><option value="">-- Select Status --</option><?php foreach ($plantingStatuses as $ps): ?><option value="<?php echo $ps['status_id']; ?>"><?php echo htmlspecialchars($ps['status_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="form-label">Area (ha) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="area_planted" required></div>
+        <div class="col-6"><label class="form-label">Seed Qty <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="seed_quantity" required></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Status <span class="text-danger">*</span></label>
+        <select class="form-select" name="status_id" required>
+          <option value="" disabled selected>-- Select Status --</option>
+          <?php foreach ($plantingStatuses as $ps): ?><option value="<?php echo $ps['status_id']; ?>"><?php echo htmlspecialchars($ps['status_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetPlantingForm('addPlantingForm', 'addPlantingError')">Cancel</button>
@@ -213,20 +247,51 @@ try {
       <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetPlantingForm('editPlantingForm', 'editPlantingError')"></button>
     </div>
     <div class="modal-body">
+      <!-- Alert banner for No-Changes detection -->
+      <div id="editPlantingAlert" class="alert alert-danger py-2 small mb-3" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editPlantingAlertText">No changes were made to this planting record.</span>
+      </div>
+
       <div id="editPlantingError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This planting record already exists for this farm, crop, and date.</div>
+      
       <input type="hidden" name="update_planting" value="1">
       <input type="hidden" id="edit_planting_id" name="planting_id">
-      <div class="mb-3"><label class="form-label">Farm</label><select class="form-select" id="edit_farm_id" name="farm_id" required><?php foreach ($farms as $f): ?><option value="<?php echo $f['farm_id']; ?>"><?php echo htmlspecialchars($f['farm_name']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Crop</label><select class="form-select" id="edit_crop_id" name="crop_id" required><?php foreach ($crops as $c): ?><option value="<?php echo $c['crop_id']; ?>"><?php echo htmlspecialchars($c['crop_name'] . ($c['variety'] ? ' - ' . $c['variety'] : '')); ?></option><?php endforeach; ?></select></div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Planting Date</label><input type="date" class="form-control" id="edit_planting_date" name="planting_date" required></div>
-        <div class="col-6"><label class="form-label">Expected Harvest</label><input type="date" class="form-control" id="edit_expected_harvest_date" name="expected_harvest_date"></div>
+
+      <!-- Hidden Original State Inputs for No-Change Detection -->
+      <input type="hidden" id="original_farm_id">
+      <input type="hidden" id="original_crop_id">
+      <input type="hidden" id="original_planting_date">
+      <input type="hidden" id="original_expected_harvest_date">
+      <input type="hidden" id="original_area_planted">
+      <input type="hidden" id="original_seed_quantity">
+      <input type="hidden" id="original_status_id">
+
+      <div class="mb-3">
+        <label class="form-label">Farm <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_farm_id" name="farm_id" required>
+          <?php foreach ($farms as $f): ?><option value="<?php echo $f['farm_id']; ?>"><?php echo htmlspecialchars($f['farm_name']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Crop <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_crop_id" name="crop_id" required>
+          <?php foreach ($crops as $c): ?><option value="<?php echo $c['crop_id']; ?>"><?php echo htmlspecialchars($c['crop_name'] . ($c['variety'] ? ' - ' . $c['variety'] : '')); ?></option><?php endforeach; ?>
+        </select>
       </div>
       <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Area (ha)</label><input type="number" step="0.01" class="form-control" id="edit_area_planted" name="area_planted" required></div>
-        <div class="col-6"><label class="form-label">Seed Qty</label><input type="number" step="0.01" class="form-control" id="edit_seed_quantity" name="seed_quantity"></div>
+        <div class="col-6"><label class="form-label">Planting Date <span class="text-danger">*</span></label><input type="date" class="form-control" id="edit_planting_date" name="planting_date" required></div>
+        <div class="col-6"><label class="form-label">Expected Harvest <span class="text-danger">*</span></label><input type="date" class="form-control" id="edit_expected_harvest_date" name="expected_harvest_date" required></div>
       </div>
-      <div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="edit_status_id" name="status_id"><option value="">-- Select Status --</option><?php foreach ($plantingStatuses as $ps): ?><option value="<?php echo $ps['status_id']; ?>"><?php echo htmlspecialchars($ps['status_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="form-label">Area (ha) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="edit_area_planted" name="area_planted" required></div>
+        <div class="col-6"><label class="form-label">Seed Qty <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="edit_seed_quantity" name="seed_quantity" required></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Status <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_status_id" name="status_id" required>
+          <?php foreach ($plantingStatuses as $ps): ?><option value="<?php echo $ps['status_id']; ?>"><?php echo htmlspecialchars($ps['status_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetPlantingForm('editPlantingForm', 'editPlantingError')">Cancel</button>
@@ -264,6 +329,27 @@ try {
     ];
   }, $plantings)); ?>;
 
+  document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtns = document.querySelectorAll('[data-bs-target="#sidebarMenu"]');
+      let clickedToggle = false;
+      toggleBtns.forEach(btn => { if (btn.contains(event.target)) clickedToggle = true; });
+      if (sidebar.classList.contains('show') && !sidebar.contains(event.target) && !clickedToggle) {
+          const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+          bsCollapse.hide();
+      }
+  });
+
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+          const sidebar = document.getElementById('sidebarMenu');
+          if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+              const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+              bsCollapse.hide();
+          }
+      });
+  });
+
   document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', function() {
     document.getElementById('view_planting_id').textContent = '#' + this.dataset.id;
     document.getElementById('view_farm_name').textContent = this.dataset.farm;
@@ -280,18 +366,32 @@ try {
     document.getElementById('edit_farm_id').value = planting.farm_id;
     document.getElementById('edit_crop_id').value = planting.crop_id;
     document.getElementById('edit_planting_date').value = planting.planting_date;
+    document.getElementById('edit_expected_harvest_date').value = planting.expected_harvest_date || '';
     document.getElementById('edit_area_planted').value = planting.area_planted;
     document.getElementById('edit_seed_quantity').value = planting.seed_quantity || '';
-    document.getElementById('edit_expected_harvest_date').value = planting.expected_harvest_date || '';
     document.getElementById('edit_status_id').value = planting.status_id || '';
 
+    // Store original values for no-change detection
+    document.getElementById('original_farm_id').value = planting.farm_id;
+    document.getElementById('original_crop_id').value = planting.crop_id;
+    document.getElementById('original_planting_date').value = planting.planting_date;
+    document.getElementById('original_expected_harvest_date').value = planting.expected_harvest_date || '';
+    document.getElementById('original_area_planted').value = planting.area_planted;
+    document.getElementById('original_seed_quantity').value = planting.seed_quantity || '';
+    document.getElementById('original_status_id').value = planting.status_id || '';
+    
     document.getElementById('editPlantingError').style.display = 'none';
+    const editAlert = document.getElementById('editPlantingAlert');
+    if (editAlert) editAlert.style.display = 'none';
+
     new bootstrap.Modal(document.getElementById('editPlantingModal')).show();
   }
 
   function resetPlantingForm(formId, errorId) {
     document.getElementById(formId).reset();
     document.getElementById(errorId).style.display = 'none';
+    const editAlert = document.getElementById('editPlantingAlert');
+    if (editAlert) editAlert.style.display = 'none';
   }
 
   document.getElementById('addPlantingForm')?.addEventListener('submit', function(e) {
@@ -318,10 +418,32 @@ try {
   document.getElementById('editPlantingForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const currentId = document.getElementById('edit_planting_id').value;
-    const farmId = this.querySelector('[name="farm_id"]').value.trim();
-    const cropId = this.querySelector('[name="crop_id"]').value.trim();
-    const plantingDate = this.querySelector('[name="planting_date"]').value.trim();
+    const farmId = document.getElementById('edit_farm_id').value.trim();
+    const cropId = document.getElementById('edit_crop_id').value.trim();
+    const plantingDate = document.getElementById('edit_planting_date').value.trim();
+    const expectedHarvest = document.getElementById('edit_expected_harvest_date').value.trim();
+    const areaPlanted = document.getElementById('edit_area_planted').value.trim();
+    const seedQty = document.getElementById('edit_seed_quantity').value.trim();
+    const statusId = document.getElementById('edit_status_id').value;
+
+    const origFarmId = document.getElementById('original_farm_id').value;
+    const origCropId = document.getElementById('original_crop_id').value;
+    const origPlantingDate = document.getElementById('original_planting_date').value;
+    const origExpectedHarvest = document.getElementById('original_expected_harvest_date').value;
+    const origAreaPlanted = document.getElementById('original_area_planted').value;
+    const origSeedQty = document.getElementById('original_seed_quantity').value;
+    const origStatusId = document.getElementById('original_status_id').value;
+
+    const alertDiv = document.getElementById('editPlantingAlert');
     const errorEl = document.getElementById('editPlantingError');
+
+    // Check if nothing was changed
+    if (farmId === origFarmId && cropId === origCropId && plantingDate === origPlantingDate && expectedHarvest === origExpectedHarvest && areaPlanted === origAreaPlanted && seedQty === origSeedQty && statusId === origStatusId) {
+      alertDiv.style.display = 'block';
+      errorEl.style.display = 'none';
+      return;
+    }
+    alertDiv.style.display = 'none';
 
     const isDuplicate = existingPlantings.some(p => {
       if (p.id === String(currentId)) return false;

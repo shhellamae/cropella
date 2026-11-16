@@ -30,9 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 try {
     $harvests = $wala->getAllHarvests($sort);
+    if (!is_array($harvests)) { $harvests = []; }
     $plantings = $wala->getAllPlantings('ASC');
+    if (!is_array($plantings)) { $plantings = []; }
     $grades = $wala->getAllQualityGrades();
+    if (!is_array($grades)) { $grades = []; }
     $remarks = $wala->getAllHarvestRemarks();
+    if (!is_array($remarks)) { $remarks = []; }
 } catch (\Exception $e) {
     $harvests = $plantings = $grades = $remarks = [];
     $connection_error = $e->getMessage();
@@ -60,14 +64,26 @@ try {
 </head>
 <body>
 
+<!-- Mobile Header Bar: Burger icon & Cropella on the top-left -->
 <div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
-  <div class="d-flex align-items-center"><i class="fa-solid fa-wheat-awn me-2"></i><span class="fw-bold fs-5">Cropella</span></div>
-  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i> Menu</button>
+  <div class="d-flex align-items-center"><i class="fa-solid fa-seedling me-2"></i><span class="fw-bold fs-5">Cropella AIS</span></div>
+  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i></button>
 </div>
+
 
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-3 col-lg-2 d-md-block sidebar p-3 collapse" id="sidebarMenu">
+      <!-- Mobile Close Button Header inside Sidebar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 px-2 d-md-none">
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-seedling text-pink me-2"></i><span class="fs-4 fw-bold text-white">Cropella AIS</span>
+        </div>
+        <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Close navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
       <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
       
       <hr class="text-white-50 d-none d-md-block">
@@ -75,9 +91,9 @@ try {
         <li class="nav-item"><a href="draftdashboard.php" class="nav-link"><i class="fa-solid fa-chart-pie me-2"></i> Dashboard</a></li>
         <li><a href="farmerdraft.php" class="nav-link"><i class="fa-solid fa-user-gear me-2"></i> Farmers</a></li>
         <li><a href="farm.php" class="nav-link"><i class="fa-solid fa-location-dot me-2"></i> Farms</a></li>
-        <li><a href="crop.php" class="nav-link"><i class="fa-solid fa-seedling me-2"></i> Crops Catalog</a></li>
-        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting Records</a></li>
-        <li><a href="harvest.php" class="nav-link active"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest Records</a></li>
+        <li><a href="crop.php" class="nav-link"><i class="fa-solid fa-seedling me-2"></i> Crops</a></li>
+        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting</a></li>
+        <li><a href="harvest.php" class="nav-link active"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest</a></li>
         <li><a href="report.php" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
         <?php if ($isAdmin): ?><li><a href="audit_log.php" class="nav-link"><i class="fa-solid fa-clock-rotate-left me-2"></i> Audit Logs</a></li><?php endif; ?>
       </ul>
@@ -101,6 +117,7 @@ try {
       <?php if (isset($delete_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($delete_error); ?></div><?php endif; ?>
       <?php if (isset($insertion_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($insertion_error); ?></div><?php endif; ?>
       <?php if (isset($update_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($update_error); ?></div><?php endif; ?>
+      <?php if (isset($connection_error)): ?><div class="alert alert-danger"><?php echo htmlspecialchars($connection_error); ?></div><?php endif; ?>
 
       <div class="card border-0 shadow-sm rounded-3 mb-4">
         <div class="card-body bg-white py-3">
@@ -200,14 +217,32 @@ try {
     <div class="modal-body">
       <div id="addHarvestError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This harvest record already exists for this planting and date.</div>
       <input type="hidden" name="add_harvest" value="1">
-      <div class="mb-3"><label class="form-label">Planting Record</label><select class="form-select" name="planting_id" required><option value="" disabled selected>-- Select Planting --</option><?php foreach ($plantings as $p): ?><option value="<?php echo $p['planting_id']; ?>">ID #<?php echo $p['planting_id']; ?> - <?php echo htmlspecialchars($p['farm_name'] . ' / ' . $p['crop_name']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Harvest Date</label><input type="date" class="form-control" name="harvest_date" required></div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Quantity (kg)</label><input type="number" step="0.01" class="form-control" name="quantity_kg" required></div>
-        <div class="col-6"><label class="form-label">Price / kg (₱)</label><input type="number" step="0.01" class="form-control" name="selling_price_per_kg" required></div>
+      <div class="mb-3">
+        <label class="form-label">Planting Record <span class="text-danger">*</span></label>
+        <select class="form-select" name="planting_id" required>
+          <option value="" disabled selected>-- Select Planting --</option>
+          <?php foreach ($plantings as $p): ?><option value="<?php echo $p['planting_id']; ?>">ID #<?php echo $p['planting_id']; ?> - <?php echo htmlspecialchars($p['farm_name'] . ' / ' . $p['crop_name']); ?></option><?php endforeach; ?>
+        </select>
       </div>
-      <div class="mb-3"><label class="form-label">Grade</label><select class="form-select" name="grade_id"><option value="">-- Select Grade --</option><?php foreach ($grades as $g): ?><option value="<?php echo $g['grade_id']; ?>"><?php echo htmlspecialchars($g['grade_description']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Remarks</label><select class="form-select" name="remark_id"><option value="">-- Select Remark --</option><?php foreach ($remarks as $r): ?><option value="<?php echo $r['remark_id']; ?>"><?php echo htmlspecialchars($r['remark_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="mb-3"><label class="form-label">Harvest Date <span class="text-danger">*</span></label><input type="date" class="form-control" name="harvest_date" required></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="form-label">Quantity (kg) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="quantity_kg" required></div>
+        <div class="col-6"><label class="form-label">Price / kg (₱) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" name="selling_price_per_kg" required></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Grade <span class="text-danger">*</span></label>
+        <select class="form-select" name="grade_id" required>
+          <option value="" disabled selected>-- Select Grade --</option>
+          <?php foreach ($grades as $g): ?><option value="<?php echo $g['grade_id']; ?>"><?php echo htmlspecialchars($g['grade_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Remarks <span class="text-danger">*</span></label>
+        <select class="form-select" name="remark_id" required>
+          <option value="" disabled selected>-- Select Remark --</option>
+          <?php foreach ($remarks as $r): ?><option value="<?php echo $r['remark_id']; ?>"><?php echo htmlspecialchars($r['remark_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetHarvestForm('addHarvestForm', 'addHarvestError')">Cancel</button>
@@ -234,17 +269,47 @@ try {
       <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetHarvestForm('editHarvestForm', 'editHarvestError')"></button>
     </div>
     <div class="modal-body">
+      <!-- Alert banner for No-Changes detection -->
+      <div id="editHarvestAlert" class="alert alert-danger py-2 small mb-3" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editHarvestAlertText">No changes were made to this harvest record.</span>
+      </div>
+
       <div id="editHarvestError" class="alert alert-danger py-2 small mb-3" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i>This harvest record already exists for this planting and date.</div>
+      
       <input type="hidden" name="update_harvest" value="1">
       <input type="hidden" id="edit_harvest_id" name="harvest_id">
-      <div class="mb-3"><label class="form-label">Planting Record</label><select class="form-select" id="edit_planting_id" name="planting_id" required><?php foreach ($plantings as $p): ?><option value="<?php echo $p['planting_id']; ?>">ID #<?php echo $p['planting_id']; ?> - <?php echo htmlspecialchars($p['farm_name'] . ' / ' . $p['crop_name']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Harvest Date</label><input type="date" class="form-control" id="edit_harvest_date" name="harvest_date" required></div>
-      <div class="row g-2 mb-3">
-        <div class="col-6"><label class="form-label">Quantity (kg)</label><input type="number" step="0.01" class="form-control" id="edit_quantity_kg" name="quantity_kg" required></div>
-        <div class="col-6"><label class="form-label">Price / kg (₱)</label><input type="number" step="0.01" class="form-control" id="edit_selling_price_per_kg" name="selling_price_per_kg" required></div>
+
+      <!-- Hidden Original State Inputs for No-Change Detection -->
+      <input type="hidden" id="original_planting_id">
+      <input type="hidden" id="original_harvest_date">
+      <input type="hidden" id="original_quantity_kg">
+      <input type="hidden" id="original_selling_price_per_kg">
+      <input type="hidden" id="original_grade_id">
+      <input type="hidden" id="original_remark_id">
+
+      <div class="mb-3">
+        <label class="form-label">Planting Record <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_planting_id" name="planting_id" required>
+          <?php foreach ($plantings as $p): ?><option value="<?php echo $p['planting_id']; ?>">ID #<?php echo $p['planting_id']; ?> - <?php echo htmlspecialchars($p['farm_name'] . ' / ' . $p['crop_name']); ?></option><?php endforeach; ?>
+        </select>
       </div>
-      <div class="mb-3"><label class="form-label">Grade</label><select class="form-select" id="edit_grade_id" name="grade_id"><option value="">-- Select --</option><?php foreach ($grades as $g): ?><option value="<?php echo $g['grade_id']; ?>"><?php echo htmlspecialchars($g['grade_description']); ?></option><?php endforeach; ?></select></div>
-      <div class="mb-3"><label class="form-label">Remarks</label><select class="form-select" id="edit_remark_id" name="remark_id"><option value="">-- Select --</option><?php foreach ($remarks as $r): ?><option value="<?php echo $r['remark_id']; ?>"><?php echo htmlspecialchars($r['remark_description']); ?></option><?php endforeach; ?></select></div>
+      <div class="mb-3"><label class="form-label">Harvest Date <span class="text-danger">*</span></label><input type="date" class="form-control" id="edit_harvest_date" name="harvest_date" required></div>
+      <div class="row g-2 mb-3">
+        <div class="col-6"><label class="form-label">Quantity (kg) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="edit_quantity_kg" name="quantity_kg" required></div>
+        <div class="col-6"><label class="form-label">Price / kg (₱) <span class="text-danger">*</span></label><input type="number" step="0.01" class="form-control" id="edit_selling_price_per_kg" name="selling_price_per_kg" required></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Grade <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_grade_id" name="grade_id" required>
+          <?php foreach ($grades as $g): ?><option value="<?php echo $g['grade_id']; ?>"><?php echo htmlspecialchars($g['grade_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Remarks <span class="text-danger">*</span></label>
+        <select class="form-select" id="edit_remark_id" name="remark_id" required>
+          <?php foreach ($remarks as $r): ?><option value="<?php echo $r['remark_id']; ?>"><?php echo htmlspecialchars($r['remark_description']); ?></option><?php endforeach; ?>
+        </select>
+      </div>
     </div>
     <div class="modal-footer border-0">
       <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetHarvestForm('editHarvestForm', 'editHarvestError')">Cancel</button>
@@ -281,6 +346,27 @@ try {
     ];
   }, $harvests)); ?>;
 
+  document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebarMenu');
+      const toggleBtns = document.querySelectorAll('[data-bs-target="#sidebarMenu"]');
+      let clickedToggle = false;
+      toggleBtns.forEach(btn => { if (btn.contains(event.target)) clickedToggle = true; });
+      if (sidebar.classList.contains('show') && !sidebar.contains(event.target) && !clickedToggle) {
+          const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+          bsCollapse.hide();
+      }
+  });
+
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+          const sidebar = document.getElementById('sidebarMenu');
+          if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+              const bsCollapse = bootstrap.Collapse.getInstance(sidebar) || new bootstrap.Collapse(sidebar);
+              bsCollapse.hide();
+          }
+      });
+  });
+
   document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', function() {
     document.getElementById('view_harvest_id').textContent = '#' + this.dataset.id;
     document.getElementById('view_farm_name').textContent = this.dataset.farm;
@@ -302,13 +388,26 @@ try {
     document.getElementById('edit_grade_id').value = harvest.grade_id || '';
     document.getElementById('edit_remark_id').value = harvest.remark_id || '';
 
+    // Store original values for no-change detection
+    document.getElementById('original_planting_id').value = harvest.planting_id;
+    document.getElementById('original_harvest_date').value = harvest.harvest_date;
+    document.getElementById('original_quantity_kg').value = harvest.quantity_kg;
+    document.getElementById('original_selling_price_per_kg').value = harvest.selling_price_per_kg;
+    document.getElementById('original_grade_id').value = harvest.grade_id || '';
+    document.getElementById('original_remark_id').value = harvest.remark_id || '';
+    
     document.getElementById('editHarvestError').style.display = 'none';
+    const editAlert = document.getElementById('editHarvestAlert');
+    if (editAlert) editAlert.style.display = 'none';
+
     new bootstrap.Modal(document.getElementById('editHarvestModal')).show();
   }
 
   function resetHarvestForm(formId, errorId) {
     document.getElementById(formId).reset();
     document.getElementById(errorId).style.display = 'none';
+    const editAlert = document.getElementById('editHarvestAlert');
+    if (editAlert) editAlert.style.display = 'none';
   }
 
   document.getElementById('addHarvestForm')?.addEventListener('submit', function(e) {
@@ -334,9 +433,30 @@ try {
   document.getElementById('editHarvestForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
     const currentId = document.getElementById('edit_harvest_id').value;
-    const plantingId = this.querySelector('[name="planting_id"]').value.trim();
-    const harvestDate = this.querySelector('[name="harvest_date"]').value.trim();
+    const plantingId = document.getElementById('edit_planting_id').value.trim();
+    const harvestDate = document.getElementById('edit_harvest_date').value.trim();
+    const quantityKg = document.getElementById('edit_quantity_kg').value.trim();
+    const pricePerKg = document.getElementById('edit_selling_price_per_kg').value.trim();
+    const gradeId = document.getElementById('edit_grade_id').value;
+    const remarkId = document.getElementById('edit_remark_id').value;
+
+    const origPlantingId = document.getElementById('original_planting_id').value;
+    const origHarvestDate = document.getElementById('original_harvest_date').value;
+    const origQuantityKg = document.getElementById('original_quantity_kg').value;
+    const origPricePerKg = document.getElementById('original_selling_price_per_kg').value;
+    const origGradeId = document.getElementById('original_grade_id').value;
+    const origRemarkId = document.getElementById('original_remark_id').value;
+
+    const alertDiv = document.getElementById('editHarvestAlert');
     const errorEl = document.getElementById('editHarvestError');
+
+    // Check if nothing was changed
+    if (plantingId === origPlantingId && harvestDate === origHarvestDate && quantityKg === origQuantityKg && pricePerKg === origPricePerKg && gradeId === origGradeId && remarkId === origRemarkId) {
+      alertDiv.style.display = 'block';
+      errorEl.style.display = 'none';
+      return;
+    }
+    alertDiv.style.display = 'none';
 
     const isDuplicate = existingHarvests.some(h => {
       if (h.id === String(currentId)) return false;

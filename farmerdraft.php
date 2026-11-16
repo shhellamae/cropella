@@ -49,15 +49,11 @@ try {
 <body>
 
 <!-- Mobile Header Bar: Burger icon & Cropella on the top-left -->
-<div class="text-white d-md-none p-3 d-flex align-items-center w-100 shadow-sm gap-3" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
-  <button class="btn btn-outline-light btn-sm px-2 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-label="Toggle navigation">
-    <i class="fa-solid fa-bars"></i>
-  </button>
-  <div class="d-flex align-items-center">
-    <i class="fa-solid fa-seedling me-2"></i>
-    <span class="fw-bold fs-5">Cropella</span>
-  </div>
+<div class="text-white d-md-none p-3 d-flex justify-content-between align-items-center w-100 shadow-sm" style="background: linear-gradient(135deg, #d63384 0%, #85144b 100%);">
+  <div class="d-flex align-items-center"><i class="fa-solid fa-seedling me-2"></i><span class="fw-bold fs-5">Cropella AIS</span></div>
+  <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu"><i class="fa-solid fa-bars"></i></button>
 </div>
+
 
 <div class="container-fluid">
   <div class="row">
@@ -72,16 +68,16 @@ try {
         </button>
       </div>
 
-     <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
+      <div class="d-flex align-items-center mb-4 px-2 d-none d-md-flex"><i class="fa-solid fa-seedling me-2"></i><span class="fs-4 fw-bold"> Cropella AIS</span></div>
      
       <hr class="text-white-50 d-none d-md-block">
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item"><a href="draftdashboard.php" class="nav-link"><i class="fa-solid fa-chart-pie me-2"></i> Dashboard</a></li>
         <li><a href="farmerdraft.php" class="nav-link active"><i class="fa-solid fa-user-gear me-2"></i> Farmers</a></li>
         <li><a href="farm.php" class="nav-link"><i class="fa-solid fa-location-dot me-2"></i> Farms</a></li>
-        <li><a href="crop.php" class="nav-link"><i class="fa-solid fa-seedling me-2"></i> Crops Catalog</a></li>
-        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting Records</a></li>
-        <li><a href="harvest.php" class="nav-link"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest Records</a></li>
+        <li><a href="crop.php" class="nav-link"><i class="fa-solid fa-seedling me-2"></i> Crops</a></li>
+        <li><a href="planting.php" class="nav-link"><i class="fa-solid fa-calendar-days me-2"></i> Planting</a></li>
+        <li><a href="harvest.php" class="nav-link"><i class="fa-solid fa-basket-shopping me-2"></i> Harvest</a></li>
         <li><a href="report.php" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
         <?php if ($isAdmin): ?><li><a href="audit_log.php" class="nav-link"><i class="fa-solid fa-clock-rotate-left me-2"></i> Audit Logs</a></li><?php endif; ?>
       </ul>
@@ -92,7 +88,8 @@ try {
             <li><a class="dropdown-item" href="profile.php"><i class="fa-solid fa-user-pen me-2"></i> Profile</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="login.php"><i class="fa-solid fa-right-from-bracket me-2"></i>Sign out</a></li>
-        </ul> </div>
+        </ul>
+      </div>
     </nav>
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
@@ -180,22 +177,25 @@ try {
 <div class="modal fade" id="newFarmerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <form action="farmerdraft.php" method="POST" id="addFarmerForm" onsubmit="return handleAddFarmerSubmit(event)">
-      <div class="modal-header border-0"><h5 class="modal-title fw-bold">Add New Farmer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">Add New Farmer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetFarmerForm('addFarmerForm', 'addContactError', 'addContactNumber')"></button>
+      </div>
       <div class="modal-body">
         <input type="hidden" name="add_farmer" value="1">
         <div class="row g-2 mb-3">
-          <div class="col-6"><label class="form-label">First Name</label><input type="text" class="form-control" name="first_name" required></div>
-          <div class="col-6"><label class="form-label">Last Name</label><input type="text" class="form-control" name="last_name" required></div>
+          <div class="col-6"><label class="form-label">First Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="first_name" required></div>
+          <div class="col-6"><label class="form-label">Last Name <span class="text-danger">*</span></label><input type="text" class="form-control" name="last_name" required></div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Contact Number</label>
+          <label class="form-label">Contact Number <span class="text-danger">*</span></label>
           <input type="text" class="form-control" name="contact_number" id="addContactNumber" maxlength="11" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="e.g. 09123456789" required>
           <div id="addContactError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i><span id="addContactErrorText">Contact number must be 11 digits.</span></div>
         </div>
-        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" name="address" required></div>
+        <div class="mb-3"><label class="form-label">Address <span class="text-danger">*</span></label><input type="text" class="form-control" name="address" required></div>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetFarmerForm('addFarmerForm', 'addContactError', 'addContactNumber')">Cancel</button>
         <button type="submit" class="btn btn-pink btn-sm">Save Farmer</button>
       </div>
     </form>
@@ -218,24 +218,38 @@ try {
 <div class="modal fade" id="editFarmerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
     <form action="farmerdraft.php" method="POST" id="editFarmerForm" onsubmit="return handleEditFarmerSubmit(event)">
-      <div class="modal-header border-0"><h5 class="modal-title fw-bold">Edit Farmer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">Edit Farmer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetFarmerForm('editFarmerForm', 'editContactError', 'edit_contact_number')"></button>
+      </div>
       <div class="modal-body">
+        <!-- Alert banner under Edit Farmer title for No-Changes detection -->
+        <div id="editFarmerAlert" class="alert alert-danger py-2 small mb-3" style="display: none;">
+          <i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editFarmerAlertText">No changes were made to this farmer record.</span>
+        </div>
+
         <input type="hidden" name="update_farmer" value="1">
         <input type="hidden" id="edit_farmer_id" name="farmer_id">
+        
+        <!-- Hidden Original State Inputs for No-Change Detection -->
+        <input type="hidden" id="editOriginalFirstName">
+        <input type="hidden" id="editOriginalLastName">
         <input type="hidden" id="editOriginalContact">
+        <input type="hidden" id="editOriginalAddress">
+
         <div class="row g-2 mb-3">
-          <div class="col-6"><label class="form-label">First Name</label><input type="text" class="form-control" id="edit_first_name" name="first_name" required></div>
-          <div class="col-6"><label class="form-label">Last Name</label><input type="text" class="form-control" id="edit_last_name" name="last_name" required></div>
+          <div class="col-6"><label class="form-label">First Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_first_name" name="first_name" required></div>
+          <div class="col-6"><label class="form-label">Last Name <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_last_name" name="last_name" required></div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Contact Number</label>
+          <label class="form-label">Contact Number <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="edit_contact_number" name="contact_number" maxlength="11" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
           <div id="editContactError" class="text-danger small mt-1" style="display: none;"><i class="fa-solid fa-triangle-exclamation me-1"></i><span id="editContactErrorText">Contact number must be 11 digits.</span></div>
         </div>
-        <div class="mb-3"><label class="form-label">Address</label><input type="text" class="form-control" id="edit_address" name="address" required></div>
+        <div class="mb-3"><label class="form-label">Address <span class="text-danger">*</span></label><input type="text" class="form-control" id="edit_address" name="address" required></div>
       </div>
       <div class="modal-footer border-0">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="resetFarmerForm('editFarmerForm', 'editContactError', 'edit_contact_number')">Cancel</button>
         <button type="submit" class="btn btn-pink btn-sm">Update Changes</button>
       </div>
     </form>
@@ -302,11 +316,26 @@ try {
     document.getElementById('edit_first_name').value = farmer.first_name;
     document.getElementById('edit_last_name').value = farmer.last_name;
     document.getElementById('edit_contact_number').value = farmer.contact_number;
+    document.getElementById('edit_address').value = farmer.address || '';
+
+    // Store original values for no-change detection
+    document.getElementById('editOriginalFirstName').value = farmer.first_name;
+    document.getElementById('editOriginalLastName').value = farmer.last_name;
     document.getElementById('editOriginalContact').value = farmer.contact_number;
-    document.getElementById('edit_address').value = farmer.address;
+    document.getElementById('editOriginalAddress').value = farmer.address || '';
+
+    document.getElementById('editFarmerAlert').style.display = 'none';
     document.getElementById('editContactError').style.display = 'none';
     document.getElementById('edit_contact_number').classList.remove('is-invalid');
     new bootstrap.Modal(document.getElementById('editFarmerModal')).show();
+  }
+
+  function resetFarmerForm(formId, errorId, inputId) {
+    document.getElementById(formId).reset();
+    document.getElementById(errorId).style.display = 'none';
+    document.getElementById(inputId).classList.remove('is-invalid');
+    const editAlert = document.getElementById('editFarmerAlert');
+    if (editAlert) editAlert.style.display = 'none';
   }
 
   let isAddConfirmed = false;
@@ -325,7 +354,7 @@ try {
     let errorText = document.getElementById('addContactErrorText');
 
     if (contactVal.length !== 11) {
-        errorText.textContent = 'Contact number must be exactly 11 digits.';
+        errorText.textContent = 'Contact number must be 11 digits.';
         errorDiv.style.display = 'block';
         contactInput.classList.add('is-invalid');
         return false;
@@ -362,20 +391,38 @@ try {
         return false;
     }
 
-    let contactInput = document.getElementById('edit_contact_number');
-    let contactVal = contactInput.value.trim();
-    let originalVal = document.getElementById('editOriginalContact').value;
-    let errorDiv = document.getElementById('editContactError');
-    let errorText = document.getElementById('editContactErrorText');
+    const firstName = document.getElementById('edit_first_name').value.trim();
+    const lastName = document.getElementById('edit_last_name').value.trim();
+    const contactInput = document.getElementById('edit_contact_number');
+    const contactVal = contactInput.value.trim();
+    const address = document.getElementById('edit_address').value.trim();
+
+    const origFirstName = document.getElementById('editOriginalFirstName').value;
+    const origLastName = document.getElementById('editOriginalLastName').value;
+    const origContact = document.getElementById('editOriginalContact').value;
+    const origAddress = document.getElementById('editOriginalAddress').value;
+
+    const alertDiv = document.getElementById('editFarmerAlert');
+    const errorDiv = document.getElementById('editContactError');
+    const errorText = document.getElementById('editContactErrorText');
+
+    // Check if nothing was changed
+    if (firstName === origFirstName && lastName === origLastName && contactVal === origContact && address === origAddress) {
+        alertDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
+        contactInput.classList.remove('is-invalid');
+        return false;
+    }
+    alertDiv.style.display = 'none';
 
     if (contactVal.length !== 11) {
-        errorText.textContent = 'Contact number must be exactly 11 digits.';
+        errorText.textContent = 'Contact number must be 11 digits.';
         errorDiv.style.display = 'block';
         contactInput.classList.add('is-invalid');
         return false;
     }
 
-    if (contactVal !== originalVal && existingContacts.includes(contactVal)) {
+    if (contactVal !== origContact && existingContacts.includes(contactVal)) {
         errorText.textContent = 'Contact number already exists.';
         errorDiv.style.display = 'block';
         contactInput.classList.add('is-invalid');
